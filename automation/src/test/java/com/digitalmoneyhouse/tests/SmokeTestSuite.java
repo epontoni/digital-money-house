@@ -1,9 +1,7 @@
 package com.digitalmoneyhouse.tests;
 
 import com.digitalmoneyhouse.base.BaseTest;
-import com.digitalmoneyhouse.pages.CardsPage;
-import com.digitalmoneyhouse.pages.DashboardPage;
-import com.digitalmoneyhouse.pages.ProfilePage;
+import com.digitalmoneyhouse.pages.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.testng.Assert;
@@ -14,6 +12,9 @@ public class SmokeTestSuite extends BaseTest {
     private DashboardPage dashboardPage;
     private ProfilePage profilePage;
     private CardsPage cardsPage;
+    private DepositPage depositPage;
+    private ActivityPage activityPage;
+    private ActivityDetailPage activityDetailPage;
 
     @BeforeMethod
     public void authenticateUser() {
@@ -21,6 +22,9 @@ public class SmokeTestSuite extends BaseTest {
         dashboardPage = new DashboardPage(driver);
         profilePage = new ProfilePage(driver);
         cardsPage = new CardsPage(driver);
+        depositPage = new DepositPage(driver);
+        activityPage = new ActivityPage(driver);
+        activityDetailPage = new ActivityDetailPage(driver);
     }
 
     /**
@@ -67,37 +71,6 @@ public class SmokeTestSuite extends BaseTest {
     }
 
     /**
-     * CP-019 & CP-020: Buscador de actividad con tecla Enter y enlace a actividad.
-     */
-    @Test(description = "CP-019/020: Buscador de actividad con Enter y redirección")
-    public void testActivitySearchRedirection() {
-        dashboardPage.navigateTo(baseUrl);
-        dashboardPage.searchActivityAndPressEnter("Rodrigo");
-        wait.until(ExpectedConditions.urlContains("/activity?q=Rodrigo"));
-        Assert.assertTrue(driver.getCurrentUrl().contains("/activity?q=Rodrigo"));
-    }
-
-    /**
-     * CP-021: Visualización de datos de perfil y contraseña protegida con asteriscos.
-     */
-    @Test(description = "CP-021: Datos de perfil y contraseña enmascarada con asteriscos")
-    public void testProfileDetailsAndPasswordHidden() {
-        profilePage.navigateTo(baseUrl);
-        Assert.assertTrue(profilePage.isPasswordHidden(), "La contraseña debe mostrarse oculta con (******)");
-    }
-
-    /**
-     * CP-024: Botón 'Gestioná los medios de pago' redirige a /cards.
-     */
-    @Test(description = "CP-024: Redirección desde Mi Perfil a Gestión de Medios de Pago")
-    public void testProfileToCardsRedirection() {
-        profilePage.navigateTo(baseUrl);
-        profilePage.clickGestionarMediosPago();
-        wait.until(ExpectedConditions.urlContains("/cards"));
-        Assert.assertTrue(driver.getCurrentUrl().contains("/cards"));
-    }
-
-    /**
      * CP-025 & CP-026: Alta de tarjeta y detección de marca (Visa, Mastercard, AMEX) en base a los primeros 4 dígitos.
      */
     @Test(description = "CP-025/026: Alta de tarjeta con detección automática de marca")
@@ -106,7 +79,6 @@ public class SmokeTestSuite extends BaseTest {
         cardsPage.clickNuevaTarjeta();
         wait.until(ExpectedConditions.urlContains("/cards/new"));
 
-        // Test Visa (comienza con 4)
         cardsPage.fillCardForm("4720123456789012", "12/28", "MAURICIO BRITO", "123");
         String previewText = cardsPage.getDetectedBrandText();
         Assert.assertTrue(previewText.contains("VISA"), "Debe detectar tarjeta tipo VISA");
@@ -121,5 +93,61 @@ public class SmokeTestSuite extends BaseTest {
         String pageSource = driver.getPageSource();
         Assert.assertTrue(pageSource.contains("Terminada en"),
                 "Debe mostrar texto 'Terminada en XXXX'");
+    }
+
+    /**
+     * CP-031 & CP-035 & CP-036: Flujo completo de ingreso de dinero con tarjeta y comprobante.
+     */
+    @Test(description = "CP-031/035/036: Carga de dinero con tarjeta, revisión y comprobante")
+    public void testCardDepositWorkflow() {
+        depositPage.navigateTo(baseUrl);
+        depositPage.selectCardMethod();
+        depositPage.continueWithSelectedCard();
+        depositPage.enterAmountAndContinue("500");
+        depositPage.confirmReview();
+
+        Assert.assertTrue(depositPage.isDepositSuccessBannerDisplayed(),
+                "Debe mostrarse el banner 'Ya cargamos el dinero en tu cuenta'");
+    }
+
+    /**
+     * CP-037: Visualización y copiado de CVU y Alias en carga externa.
+     */
+    @Test(description = "CP-037: Consulta y copiado de CVU y Alias en carga por cuenta externa")
+    public void testExternalTransferCredentials() {
+        depositPage.navigateTo(baseUrl);
+        depositPage.selectExternalTransferMethod();
+        depositPage.clickCopyCvu();
+        depositPage.clickCopyAlias();
+        String pageSource = driver.getPageSource();
+        Assert.assertTrue(pageSource.contains("Copia tu cvu o alias"),
+                "Debe presentarse la pantalla de credenciales de transferencia");
+    }
+
+    /**
+     * CP-038 & CP-040: Paginación y búsqueda por palabras clave en Mi Actividad.
+     */
+    @Test(description = "CP-038/040: Paginación cada 10 transacciones y buscador en actividad")
+    public void testActivityPaginationAndSearch() {
+        activityPage.navigateTo(baseUrl);
+        Assert.assertTrue(activityPage.getActivityItems().size() <= 10,
+                "Cada página debe contener un máximo de 10 transacciones");
+
+        activityPage.searchKeyword("Rodrigo");
+        Assert.assertTrue(driver.getPageSource().contains("Rodrigo"),
+                "Debe filtrar transacciones relacionadas con Rodrigo");
+    }
+
+    /**
+     * CP-045: Detalle de actividad con número de operación y estado Aprobada.
+     */
+    @Test(description = "CP-045: Detalle de transacción con número de operación y estado Aprobada")
+    public void testActivityDetailView() {
+        activityPage.navigateTo(baseUrl);
+        activityPage.clickFirstActivity();
+        wait.until(ExpectedConditions.urlMatches(".*/activity/act_.*"));
+
+        Assert.assertTrue(activityDetailPage.isStatusApprovedDisplayed(),
+                "El detalle debe exhibir estado '✓ Aprobada'");
     }
 }

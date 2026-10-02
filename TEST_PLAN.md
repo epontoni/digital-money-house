@@ -1,6 +1,6 @@
-# Plan de Pruebas (Testing Kickoff, Manual Testing & Automation) - Sprint 1 y Sprint 2
+# Plan de Pruebas (Testing Kickoff, Manual Testing & Automation) - Sprints 1, 2 y 3
 
-Este documento detalla la estrategia de aseguramiento de calidad (QA), el diseño de la suite de pruebas manuales y automatizadas para las funcionalidades de la billetera virtual **Digital Money House**, cubriendo los requerimientos de **Sprint 1** y **Sprint 2**.
+Este documento detalla la estrategia de aseguramiento de calidad (QA), el diseño de la suite de pruebas manuales, automatizadas y exploratorias para las funcionalidades de la billetera virtual **Digital Money House**, cubriendo los requerimientos de **Sprint 1**, **Sprint 2** y **Sprint 3**.
 
 ---
 
@@ -18,7 +18,7 @@ Cada caso de prueba debe ser atómico, claro y reproducible por cualquier miembr
 
 ### ¿Cómo reportar un defecto (Bug)?
 Cuando un caso de prueba falla, se debe reportar inmediatamente en el sistema de tracking (ej. Jira, GitLab Issues) con:
-- **Título Claro:** Formato `[Componente] Acción - Síntoma del Defecto` (ej: `[Tarjetas] Alta - No detecta franquicia Mastercard`).
+- **Título Claro:** Formato `[Componente] Acción - Síntoma del Defecto` (ej: `[Carga Dinero] Monto - Permite ingresar montos negativos`).
 - **Descripción:** Breve explicación del problema.
 - **Pasos para Reproducir:** Secuencia exacta de acciones para reproducir el fallo.
 - **Resultado Esperado:** Qué debería haber ocurrido según el criterio de aceptación.
@@ -30,22 +30,22 @@ Cuando un caso de prueba falla, se debe reportar inmediatamente en el sistema de
 La suite de humo valida que las **funcionalidades más críticas e indispensables** del sistema estén estables tras un despliegue.
 - **Criterio:** Si el caso de prueba falla, la aplicación es inusable en sus flujos troncales.
 - **Casos Smoke Sprint 1:** Carga de Landing, Registro exitoso, Login en dos pasos y persistencia de sesión.
-- **Casos Smoke Sprint 2:**
-  - Visualización del dinero disponible con 2 centavos en ARS en Dashboard.
-  - Navegación y persistencia de barra lateral (con clic en nombre que redirige al Dashboard).
-  - Resumen de los últimos 10 movimientos ordenados por fecha y buscador con tecla `Enter`.
-  - Visualización de datos de perfil, CVU, alias y enlace a gestión de medios de pago.
-  - Alta de tarjeta con detección de marca (Visa, Mastercard, AMEX) en base a los primeros 4 dígitos.
-  - Visualización de tarjetas mostrando únicamente los últimos 4 dígitos.
-  - Eliminación de tarjeta y mensaje de estado vacío "No tienes tarjetas asociadas".
+- **Casos Smoke Sprint 2:** Saldo con 2 centavos en ARS, barra lateral persistente, perfil, alta de tarjeta con detección de marca y eliminación de tarjetas.
+- **Casos Smoke Sprint 3:**
+  - Ingreso de dinero con tarjeta de débito o crédito (selección, monto y confirmación).
+  - Comprobante de carga de saldo y actualización inmediata de balance.
+  - Ingreso de dinero por transferencia externa con copiado de CVU y Alias.
+  - Paginación cada 10 transacciones y orden cronológico de más nueva a más antigua.
+  - Buscador de palabras clave en el listado de actividad.
+  - Consulta del detalle de transacción (`/activity/[id]`) con datos de operación, fecha, monto y destino.
 
 ### Criterio de inclusión en Suite de Regresión (Regression Suite)
-La suite de regresión asegura que validaciones detalladas, límites de negocio y flujos secundarios no se rompan tras modificaciones.
-- **Casos Regression:** Validaciones de formato de alias `X.X.X` (3 palabras), límite de 10 tarjetas con alerta, copiado de CVU/Alias al clipboard, confirmación de correo electrónico al editar email, y filtros combinados de actividad.
+La suite de regresión asegura que validaciones detalladas, límites de negocio y combinaciones de filtros no se rompan tras modificaciones.
+- **Casos Regression Sprint 3:** Validación de monto mayor a cero, botón deshabilitado si monto es $0, edición de monto con lápiz en pantalla de revisión, filtros por período (hoy, ayer, semana, 15 días, mes, 3 meses, año), filtros por operación (ingresos/egresos), filtro opcional por monto aproximado, y botón "Borrar filtros".
 
 ---
 
-## 2. Planilla Consolidada de Casos de Prueba (Sprint 1 & Sprint 2)
+## 2. Planilla Consolidada de Casos de Prueba (Sprints 1, 2 y 3)
 
 | ID | Componente | Título / Escenario | Precondición | Pasos | Resultado Esperado | Suite | Estado |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -78,11 +78,24 @@ La suite de regresión asegura que validaciones detalladas, límites de negocio 
 | **CP-028** | Tarjetas | Visualización de últimos 4 dígitos | En `/cards` | 1. Observar la lista "Tus tarjetas". | Cada tarjeta muestra solo su terminación en 4 dígitos (ej: "Terminada en 4067"). | Smoke | **Pasó** |
 | **CP-029** | Tarjetas | Eliminación de tarjeta y mensaje vacío | En `/cards` | 1. Eliminar tarjetas asociadas hasta vaciar la lista. | Al eliminar la última tarjeta, se renderiza el mensaje exacto: "No tienes tarjetas asociadas". | Smoke | **Pasó** |
 | **CP-030** | Opcional | Confirmación de email al editar en Perfil | En `/profile` | 1. Editar email del usuario por uno nuevo.<br>2. Abrir el enlace de verificación generado `/confirm-email?token=...`. | Confirma el nuevo correo y lo actualiza en el sistema con mensaje de éxito. | Regression | **Pasó** |
+| **CP-031** | Carga de Dinero | Selección de método de carga | Usuario autenticado | 1. Ingresar a `/deposit`<br>2. Verificar opciones "Transferencia bancaria" y "Seleccionar tarjeta". | Se presentan ambos métodos con navegación hacia sus respectivos flujos. | Smoke | **Pasó** |
+| **CP-032** | Carga de Dinero | Listado y selección de medios de pago adheridos | En `/deposit` | 1. Elegir "Seleccionar tarjeta"<br>2. Seleccionar una tarjeta con radio button. | Se listan las tarjetas adheridas y permite marcar una tarjeta para la operación. | Smoke | **Pasó** |
+| **CP-033** | Carga de Dinero | Validación de monto y habilitación de botón | En `/deposit` | 1. Dejar monto en $0 o vacío -> Botón Continuar deshabilitado (gris).<br>2. Ingresar monto válido (ej: $300) -> Botón Continuar habilitado (lima). | Se valida que el monto sea estrictamente mayor a 0 antes de avanzar. | Regression | **Pasó** |
+| **CP-034** | Carga de Dinero | Pantalla de revisión con edición de monto | En `/deposit` | 1. En pantalla "Revisá que está todo bien", presionar ícono lápiz.<br>2. Modificar monto y volver a continuar. | Permite corregir el importe antes de efectuar la transacción definitiva. | Regression | **Pasó** |
+| **CP-035** | Carga de Dinero | Confirmación de carga e impacto en saldo | En `/deposit` | 1. Presionar "Continuar" en pantalla de revisión.<br>2. Verificar saldo y listado de actividad en `/home`. | El saldo disponible se incrementa por el monto exacto y se registra un movimiento de tipo `deposit`. | Smoke | **Pasó** |
+| **CP-036** | Carga de Dinero | Pantalla de comprobante y descarga de voucher | En `/deposit` | 1. Completar carga de dinero.<br>2. Verificar banner verde "Ya cargamos el dinero en tu cuenta"<br>3. Clic en "Descargar comprobante". | Se despliega el comprobante formal con número de operación, fecha, monto y opción de impresión/PDF. | Smoke | **Pasó** |
+| **CP-037** | Carga de Dinero | Carga por cuenta externa (CVU y Alias) | En `/deposit` | 1. Elegir "Transferencia bancaria"<br>2. Presionar íconos de copia de CVU y Alias. | Muestra CVU y Alias de la cuenta y los copia al portapapeles con confirmación visual. | Smoke | **Pasó** |
+| **CP-038** | Mi Actividad | Paginación de 10 transacciones por página | En `/activity` | 1. Ingresar a `/activity`<br>2. Observar lista y presionar botones numéricos de paginación (1, 2, 3...). | Cada página renderiza exactamente 10 transacciones y navega fluidamente entre páginas. | Smoke | **Pasó** |
+| **CP-039** | Mi Actividad | Orden cronológico por defecto (más nueva a más antigua) | En `/activity` | 1. Observar fechas de las transacciones en la primera página. | Los movimientos se ordenan descendentemente por fecha/hora de forma predeterminada. | Smoke | **Pasó** |
+| **CP-040** | Mi Actividad | Búsqueda por palabras clave en título | En `/activity` | 1. Escribir "Rodrigo" en el buscador de actividad.<br>2. Observar los resultados. | Filtra instantáneamente las transacciones cuyo concepto o destino contenga el término. | Smoke | **Pasó** |
+| **CP-041** | Mi Actividad | Filtro por período de tiempo | En `/activity` | 1. Clic en "Filtrar"<br>2. Seleccionar "Hoy", "Ayer", "Última semana", "Últimos 15 días", "Último mes", etc.<br>3. Clic en "Aplicar". | La lista se restringe únicamente a los movimientos ocurridos en el intervalo seleccionado. | Regression | **Pasó** |
+| **CP-042** | Mi Actividad | Filtro por operaciones (Ingresos o Egresos) | En `/activity` | 1. En modal de filtros, pestaña "Operaciones", elegir "Ingresos".<br>2. Clic en "Aplicar". | Muestra únicamente montos positivos (ingresos de dinero y transferencias entrantes). | Regression | **Pasó** |
+| **CP-043** | Mi Actividad | Filtro por monto aproximado (Opcional Sprint 3) | En `/activity` | 1. Pestaña "Monto", seleccionar rango (ej: "$1000 a $5000").<br>2. Clic en "Aplicar". | Filtra exclusivamente transacciones cuyos valores absolutos pertenezcan al intervalo. | Regression | **Pasó** |
+| **CP-044** | Mi Actividad | Botón "Borrar filtros" | En `/activity` | 1. Con filtros activos, presionar "Borrar filtros". | Limpia todos los filtros seleccionados y recarga la lista completa por defecto. | Regression | **Pasó** |
+| **CP-045** | Detalle Actividad | Consulta de detalle de transacción | En `/activity` | 1. Clic en una transacción de la lista.<br>2. Verificar datos en `/activity/[id]`. | Muestra estado "✓ Aprobada", fecha/hora, concepto, monto, destinatario y número de operación con voucher. | Smoke | **Pasó** |
 
 ---
 
 ## 3. Framework de Automatización (Java + Selenium)
 
-Los casos de la suite de Smoke (`CP-014`, `CP-015`, `CP-016`, `CP-021`, `CP-025`, `CP-026`, `CP-028`, `CP-029`) han sido automatizados utilizando **Java 17**, **Selenium WebDriver 4** y **TestNG**, estructurados bajo el patrón de diseño **Page Object Model (POM)**.
-
-El código fuente del framework y sus instrucciones de ejecución se encuentran centralizados en el directorio [`automation/`](./automation/).
+Los casos troncales de la suite de Smoke (`CP-031`, `CP-032`, `CP-035`, `CP-036`, `CP-038`, `CP-040`, `CP-045`), junto con los de los Sprints 1 y 2, se encuentran automatizados bajo el patrón **Page Object Model (POM)** en [`automation/`](./automation/).

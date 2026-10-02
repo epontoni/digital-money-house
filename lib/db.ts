@@ -28,6 +28,12 @@ export interface Activity {
   amount: number;
   date: string;
   dayName: string;
+  operationNumber?: string;
+  destination?: string;
+  destinationDetail?: string;
+  origin?: string;
+  originDetail?: string;
+  status?: string;
 }
 
 export interface User {
@@ -408,27 +414,169 @@ export function deleteCard(userId: string, cardId: string) {
 }
 
 // Activity Management
-export function getActivitiesByUserId(userId: string, limit: number = 10, query?: string) {
+export function getActivityById(userId: string, activityId: string): Activity | null {
   const db = readDB();
-  let activities = db.activities.filter((a: Activity) => a.userId === userId);
+  const activity = db.activities.find((a: Activity) => a.userId === userId && a.id === activityId);
+  return activity || null;
+}
 
-  if (query && query.trim()) {
-    const q = query.trim().toLowerCase();
-    activities = activities.filter((a) =>
-      a.description.toLowerCase().includes(q) ||
-      a.dayName.toLowerCase().includes(q) ||
-      a.amount.toString().includes(q)
+export function createDeposit(
+  userId: string,
+  data: {
+    amount: number;
+    cardId?: string;
+    cardLastFour?: string;
+    type?: "card" | "transfer";
+  }
+) {
+  const db = readDB();
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  if (!data.amount || data.amount <= 0) {
+    throw new Error("El monto a ingresar debe ser mayor a 0");
+  }
+
+  user.balance += data.amount;
+
+  const now = new Date();
+  const operationNumber = Math.floor(10000000000 + Math.random() * 90000000000).toString();
+  const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const dayName = dayNames[now.getDay()];
+
+  const originDetail = data.cardLastFour ? `Tarjeta terminada en ${data.cardLastFour}` : "Transferencia externa";
+
+  const newActivity: Activity = {
+    id: "act_" + Date.now().toString(),
+    userId,
+    type: "deposit",
+    description: "Ingresaste dinero",
+    amount: data.amount,
+    date: now.toISOString(),
+    dayName,
+    operationNumber,
+    destination: "Cuenta propia",
+    destinationDetail: `CVU ${user.cvu}`,
+    origin: data.cardLastFour ? `Tarjeta terminada en ${data.cardLastFour}` : "Cuenta externa",
+    originDetail,
+    status: "Aprobada",
+  };
+
+  db.activities.unshift(newActivity);
+  writeDB(db);
+
+  return {
+    activity: newActivity,
+    newBalance: user.balance,
+    user: getSafeUser(user),
+  };
+}
+
+export interface ActivityFilterOptions {
+  page?: number;
+  limit?: number;
+  query?: string;
+  period?: string;
+  operation?: string;
+  amountRange?: string;
+}
+
+export function getPaginatedActivities(userId: string, options: ActivityFilterOptions) {
+  const db = readDB();
+  let list = db.activities.filter((a: Activity) => a.userId === userId);
+
+  // Search by keyword in title/description or destination
+  if (options.query && options.query.trim()) {
+    const q = options.query.trim().toLowerCase();
+    list = list.filter(
+      (a) =>
+        a.description.toLowerCase().includes(q) ||
+        (a.destination && a.destination.toLowerCase().includes(q)) ||
+        (a.operationNumber && a.operationNumber.includes(q))
     );
   }
 
-  // Sort by date descending by default
-  activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  if (limit > 0) {
-    return activities.slice(0, limit);
+  // Filter by operations: ingresos o egresos
+  if (options.operation === "ingresos") {
+    list = list.filter((a) => a.amount > 0);
+  } else if (options.operation === "egresos") {
+    list = list.filter((a) => a.amount < 0);
   }
 
-  return activities;
+  // Filter by period
+  if (options.period && options.period !== "todos") {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const yesterdayStart = todayStart - 86400000;
+
+    list = list.filter((a) => {
+      const itemTime = new Date(a.date).getTime();
+      switch (options.period) {
+        case "hoy":
+          return itemTime >= todayStart;
+        case "ayer":
+          return itemTime >= yesterdayStart && itemTime < todayStart;
+        case "semana":
+          return itemTime >= now.getTime() - 7 * 86400000;
+        case "15dias":
+          return itemTime >= now.getTime() - 15 * 86400000;
+        case "mes":
+          return itemTime >= now.getTime() - 30 * 86400000;
+        case "3meses":
+          return itemTime >= now.getTime() - 90 * 86400000;
+        case "anio":
+          return itemTime >= now.getTime() - 365 * 86400000;
+        default:
+          return true;
+      }
+    });
+  }
+
+  // Filter by approximate amount (Sprint 3 optional)
+  if (options.amountRange && options.amountRange !== "todos") {
+    list = list.filter((a) => {
+      const absVal = Math.abs(a.amount);
+      switch (options.amountRange) {
+        case "0-1000":
+          return absVal >= 0 && absVal <= 1000;
+        case "1000-5000":
+          return absVal > 1000 && absVal <= 5000;
+        case "5000-20000":
+          return absVal > 5000 && absVal <= 20000;
+        case "20000-100000":
+          return absVal > 20000 && absVal <= 100000;
+        case "100000+":
+          return absVal > 100000;
+        default:
+          return true;
+      }
+    });
+  }
+
+  // Default sorting: Newest to oldest (date descending)
+  list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const page = Math.max(1, options.page || 1);
+  const limit = Math.max(1, options.limit || 10);
+  const totalCount = list.length;
+  const totalPages = Math.ceil(totalCount / limit) || 1;
+  const startIndex = (page - 1) * limit;
+  const paginated = list.slice(startIndex, startIndex + limit);
+
+  return {
+    activities: paginated,
+    totalCount,
+    totalPages,
+    currentPage: page,
+    limit,
+  };
+}
+
+export function getActivitiesByUserId(userId: string, limit: number = 10, query?: string) {
+  const result = getPaginatedActivities(userId, { limit, query });
+  return result.activities;
 }
 
 export function createPasswordRecoveryToken(email: string) {
