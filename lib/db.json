@@ -7,18 +7,175 @@
   "users": [
     {
       "id": "1",
+      "name": "Mauricio",
+      "lastName": "Brito",
+      "email": "mauriciobrito@digitalhouse.com",
+      "password": "Password123",
+      "phone": "1146730989",
+      "cuit": "20350269798",
+      "alias": "este.alias.dh",
+      "accountNumber": "3993584246",
+      "cvu": "0000002100075320000000",
+      "balance": 6890534.17,
+      "verified": true,
+      "verificationCode": null,
+      "recoveryToken": null,
+      "pendingEmail": null,
+      "emailConfirmationToken": null,
+      "created_at": "2026-07-03T20:01:09.401Z"
+    },
+    {
+      "id": "2",
       "name": "Diego",
       "lastName": "Maradona",
       "email": "diego@moneyhouse.com",
       "password": "Password123",
       "phone": "1122334455",
-      "accountNumber": "3993584246",
+      "cuit": "20101010108",
+      "alias": "diego.armando.dmh",
+      "accountNumber": "3993584247",
       "cvu": "0000003136105970968999",
-      "balance": 0,
+      "balance": 150000.00,
       "verified": true,
       "verificationCode": null,
       "recoveryToken": null,
+      "pendingEmail": null,
+      "emailConfirmationToken": null,
       "created_at": "2026-07-03T20:01:09.401Z"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card_01",
+      "userId": "1",
+      "cardNumber": "4720390000000000",
+      "lastFour": "0000",
+      "cardholderName": "MAURICIO BRITO",
+      "expiryDate": "20/28",
+      "brand": "Visa",
+      "created_at": "2026-09-10T12:00:00.000Z"
+    },
+    {
+      "id": "card_02",
+      "userId": "1",
+      "cardNumber": "5312345678904067",
+      "lastFour": "4067",
+      "cardholderName": "MAURICIO BRITO",
+      "expiryDate": "05/27",
+      "brand": "Mastercard",
+      "created_at": "2026-09-11T12:00:00.000Z"
+    },
+    {
+      "id": "card_03",
+      "userId": "1",
+      "cardNumber": "371234567898040",
+      "lastFour": "8040",
+      "cardholderName": "MAURICIO BRITO",
+      "expiryDate": "11/26",
+      "brand": "AMEX",
+      "created_at": "2026-09-12T12:00:00.000Z"
+    },
+    {
+      "id": "card_04",
+      "userId": "1",
+      "cardNumber": "4532015067899006",
+      "lastFour": "9006",
+      "cardholderName": "MAURICIO BRITO",
+      "expiryDate": "08/29",
+      "brand": "Visa",
+      "created_at": "2026-09-13T12:00:00.000Z"
+    }
+  ],
+  "activities": [
+    {
+      "id": "act_01",
+      "userId": "1",
+      "type": "transfer_out",
+      "description": "Transferiste a Rodrigo",
+      "amount": -1265.57,
+      "date": "2026-10-03T14:30:00.000Z",
+      "dayName": "sábado"
+    },
+    {
+      "id": "act_02",
+      "userId": "1",
+      "type": "transfer_out",
+      "description": "Transfereriste a Consorcio",
+      "amount": -1265.57,
+      "date": "2026-10-02T18:15:00.000Z",
+      "dayName": "viernes"
+    },
+    {
+      "id": "act_03",
+      "userId": "1",
+      "type": "deposit",
+      "description": "Ingresaste dinero",
+      "amount": 1265.57,
+      "date": "2026-10-02T10:00:00.000Z",
+      "dayName": "viernes"
+    },
+    {
+      "id": "act_04",
+      "userId": "1",
+      "type": "transfer_in",
+      "description": "Te transfirieron dinero",
+      "amount": 1265.57,
+      "date": "2026-09-28T09:45:00.000Z",
+      "dayName": "lunes"
+    },
+    {
+      "id": "act_05",
+      "userId": "1",
+      "type": "service_payment",
+      "description": "Pago de servicios - Metrogas",
+      "amount": -3450.00,
+      "date": "2026-09-25T16:20:00.000Z",
+      "dayName": "jueves"
+    },
+    {
+      "id": "act_06",
+      "userId": "1",
+      "type": "deposit",
+      "description": "Ingreso por transferencia bancaria",
+      "amount": 50000.00,
+      "date": "2026-09-20T11:00:00.000Z",
+      "dayName": "domingo"
+    },
+    {
+      "id": "act_07",
+      "userId": "1",
+      "type": "transfer_out",
+      "description": "Transferiste a Laura Gómez",
+      "amount": -8900.50,
+      "date": "2026-09-18T19:30:00.000Z",
+      "dayName": "viernes"
+    },
+    {
+      "id": "act_08",
+      "userId": "1",
+      "type": "service_payment",
+      "description": "Pago de servicios - Edenor",
+      "amount": -5120.25,
+      "date": "2026-09-15T10:10:00.000Z",
+      "dayName": "martes"
+    },
+    {
+      "id": "act_09",
+      "userId": "1",
+      "type": "deposit",
+      "description": "Ingresaste dinero con tarjeta de débito",
+      "amount": 20000.00,
+      "date": "2026-09-12T15:00:00.000Z",
+      "dayName": "sábado"
+    },
+    {
+      "id": "act_10",
+      "userId": "1",
+      "type": "transfer_out",
+      "description": "Transferiste a Juan Pérez",
+      "amount": -4500.00,
+      "date": "2026-09-10T12:00:00.000Z",
+      "dayName": "jueves"
     }
   ]
 }

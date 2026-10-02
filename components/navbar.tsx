@@ -1,12 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "./auth-context";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 
 export function Navbar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  // If on authenticated app shell routes, DashboardShell renders the dedicated layout
+  const isDashboardRoute = ["/home", "/profile", "/cards", "/activity", "/deposit", "/services"].some(
+    (p) => pathname === p || pathname.startsWith(p + "/")
+  );
+  if (isDashboardRoute) return null;
 
   // Get initials from user's full name
   const getInitials = () => {

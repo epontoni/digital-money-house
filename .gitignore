@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+target/
+automation/target/
 
 # next.js
 /.next/

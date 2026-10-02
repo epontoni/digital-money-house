@@ -9,6 +9,8 @@ interface UserProfile {
   lastName: string;
   email: string;
   phone: string;
+  cuit: string;
+  alias: string;
   accountNumber: string;
   cvu: string;
   balance: number;
@@ -20,6 +22,7 @@ interface AuthContextType {
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (updatedFields: Partial<UserProfile>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -82,8 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUser = (updatedFields: Partial<UserProfile>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
