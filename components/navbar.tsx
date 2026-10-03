@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./auth-context";
@@ -9,6 +10,11 @@ import { Button } from "./ui/button";
 export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // If on authenticated app shell routes, DashboardShell renders the dedicated layout
   const isDashboardRoute = ["/home", "/profile", "/cards", "/activity", "/deposit", "/services"].some(
@@ -38,7 +44,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           <ModeToggle />
           
-          {user ? (
+          {mounted && user ? (
             <div className="flex items-center gap-3">
               {/* User Avatar Initials */}
               <Link href="/home" className="flex items-center gap-2 hover:opacity-95 group">
@@ -60,19 +66,16 @@ export function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Link href="/login">
-                <Button
-                  variant="outline"
-                  className="border-[#C1FD35] text-white hover:bg-[#C1FD35] hover:text-black bg-transparent"
-                >
-                  Ingresar
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button className="bg-[#C1FD35] text-black hover:bg-[#a6db29]">
-                  Crear cuenta
-                </Button>
-              </Link>
+              <Button
+                asChild
+                variant="outline"
+                className="border-[#C1FD35] text-white hover:bg-[#C1FD35] hover:text-black bg-transparent"
+              >
+                <Link href="/login">Ingresar</Link>
+              </Button>
+              <Button asChild className="bg-[#C1FD35] text-black hover:bg-[#a6db29]">
+                <Link href="/register">Crear cuenta</Link>
+              </Button>
             </div>
           )}
         </div>
@@ -80,3 +83,4 @@ export function Navbar() {
     </header>
   );
 }
+

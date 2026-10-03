@@ -84,13 +84,13 @@ export default function RecoverPage() {
                 <p className="text-xs font-semibold text-[#a6db29] uppercase tracking-wider">
                   [Mock Helper] Enlace recibido por email:
                 </p>
-                <Link href={mockResetLink}>
-                  <Button className="w-full bg-[#C1FD35] text-black font-semibold hover:bg-[#a6db29]">
+                <Button asChild className="w-full bg-[#C1FD35] text-black font-semibold hover:bg-[#a6db29]">
+                  <Link href={mockResetLink}>
                     Ir a restablecer contraseña
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
                 <p className="text-[10px] text-muted-foreground font-mono truncate select-all">
-                  {window.location.origin + mockResetLink}
+                  {typeof window !== "undefined" ? window.location.origin + mockResetLink : mockResetLink}
                 </p>
               </div>
             )}

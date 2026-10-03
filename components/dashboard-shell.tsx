@@ -16,19 +16,24 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && mounted && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, mounted, router]);
 
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  if (loading) {
+  if (loading || !mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#EEEAEA]">
         <div className="flex flex-col items-center gap-3">

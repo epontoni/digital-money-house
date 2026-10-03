@@ -29,19 +29,16 @@ export default function Home() {
                 {landingData.heroDescription}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Link href="/register">
-                  <Button className="w-full sm:w-auto bg-[#C1FD35] text-black font-semibold text-base py-6 px-8 hover:bg-[#a6db29] transition-all">
-                    Crear cuenta gratis
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    variant="outline"
-                    className="w-full sm:w-auto border-white text-white font-semibold text-base py-6 px-8 hover:bg-white hover:text-black bg-transparent transition-all"
-                  >
-                    Iniciar sesión
-                  </Button>
-                </Link>
+                <Button asChild className="w-full sm:w-auto bg-[#C1FD35] text-black font-semibold text-base py-6 px-8 hover:bg-[#a6db29] transition-all">
+                  <Link href="/register">Crear cuenta gratis</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full sm:w-auto border-white text-white font-semibold text-base py-6 px-8 hover:bg-white hover:text-black bg-transparent transition-all"
+                >
+                  <Link href="/login">Iniciar sesión</Link>
+                </Button>
               </div>
             </div>
 
@@ -155,11 +152,9 @@ export default function Home() {
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
             Unite a las miles de personas que ya controlan sus finanzas con nosotros.
           </h2>
-          <Link href="/register">
-            <Button className="bg-black dark:bg-[#C1FD35] text-white dark:text-black font-semibold py-5 px-8 rounded-lg hover:opacity-90">
-              Registrarme ahora
-            </Button>
-          </Link>
+          <Button asChild className="bg-black dark:bg-[#C1FD35] text-white dark:text-black font-semibold py-5 px-8 rounded-lg hover:opacity-90">
+            <Link href="/register">Registrarme ahora</Link>
+          </Button>
         </div>
       </section>
     </div>
