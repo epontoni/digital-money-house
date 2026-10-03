@@ -15,6 +15,7 @@ public class SmokeTestSuite extends BaseTest {
     private DepositPage depositPage;
     private ActivityPage activityPage;
     private ActivityDetailPage activityDetailPage;
+    private ServicesPage servicesPage;
 
     @BeforeMethod
     public void authenticateUser() {
@@ -25,6 +26,7 @@ public class SmokeTestSuite extends BaseTest {
         depositPage = new DepositPage(driver);
         activityPage = new ActivityPage(driver);
         activityDetailPage = new ActivityDetailPage(driver);
+        servicesPage = new ServicesPage(driver);
     }
 
     /**
@@ -150,4 +152,36 @@ public class SmokeTestSuite extends BaseTest {
         Assert.assertTrue(activityDetailPage.isStatusApprovedDisplayed(),
                 "El detalle debe exhibir estado '✓ Aprobada'");
     }
+
+    /**
+     * CP-046 & CP-048 & CP-050 & CP-052: Flujo de pago de servicios con dinero en cuenta.
+     */
+    @Test(description = "CP-046/048/050/052: Búsqueda, cuenta válida y pago exitoso de servicio")
+    public void testPayServiceWithAccountMoneySuccess() {
+        servicesPage.navigateTo(baseUrl);
+        servicesPage.searchService("Edenor");
+        servicesPage.selectFirstService();
+        servicesPage.enterAccountNumber("37289701912");
+        servicesPage.clickContinue();
+        servicesPage.selectDineroEnCuenta();
+        servicesPage.clickPay();
+
+        Assert.assertTrue(servicesPage.isSuccessBannerDisplayed(),
+                "Debe mostrarse el banner 'Ya realizaste tu pago'");
+    }
+
+    /**
+     * CP-049: Validación de cuenta de servicio errónea / sin facturas.
+     */
+    @Test(description = "CP-049: Error al ingresar cuenta no válida que inicia con 2")
+    public void testPayServiceAccountValidationError() {
+        servicesPage.navigateTo(baseUrl);
+        servicesPage.selectFirstService();
+        servicesPage.enterAccountNumber("27289701912");
+        servicesPage.clickContinue();
+
+        Assert.assertTrue(servicesPage.isAccountErrorDisplayed(),
+                "Debe mostrarse pantalla de error 'No encontramos facturas asociadas a este dato'");
+    }
 }
+

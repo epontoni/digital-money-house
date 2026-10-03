@@ -612,3 +612,125 @@ export function resetPassword(token: string, newPasswordSecret: string) {
 
   return { email: user.email };
 }
+
+// Service Companies and Payment Management
+export interface ServiceCompany {
+  id: string;
+  name: string;
+  category: string;
+  defaultAmount: number;
+  logoType: "claro" | "personal" | "cablevision" | "edenor" | "metrogas" | "aysa" | "telecentro" | "movistar";
+}
+
+export const AVAILABLE_SERVICES: ServiceCompany[] = [
+  { id: "claro", name: "Claro", category: "Telefonía móvil", defaultAmount: 1153.75, logoType: "claro" },
+  { id: "personal", name: "Personal", category: "Telecomunicaciones y datos", defaultAmount: 1450.00, logoType: "personal" },
+  { id: "cablevision", name: "Cablevisión", category: "Internet y TV por cable", defaultAmount: 1153.75, logoType: "cablevision" },
+  { id: "edenor", name: "Edenor", category: "Electricidad", defaultAmount: 5120.25, logoType: "edenor" },
+  { id: "metrogas", name: "Metrogas", category: "Gas natural", defaultAmount: 3450.00, logoType: "metrogas" },
+  { id: "aysa", name: "AySA", category: "Agua potable", defaultAmount: 2100.00, logoType: "aysa" },
+  { id: "telecentro", name: "Telecentro", category: "Internet y televisión", defaultAmount: 4890.00, logoType: "telecentro" },
+  { id: "movistar", name: "Movistar", category: "Telefonía móvil", defaultAmount: 2300.50, logoType: "movistar" },
+];
+
+export function getAvailableServices(query?: string): ServiceCompany[] {
+  if (!query || !query.trim()) {
+    return AVAILABLE_SERVICES;
+  }
+  const q = query.trim().toLowerCase();
+  return AVAILABLE_SERVICES.filter(
+    (s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)
+  );
+}
+
+export function validateServiceAccount(serviceId: string, accountNumber: string) {
+  const service = AVAILABLE_SERVICES.find((s) => s.id === serviceId);
+  if (!service) {
+    throw new Error("Servicio no encontrado");
+  }
+
+  // Account number rule: 11 digits without initial 2
+  const cleaned = accountNumber.replace(/\D/g, "");
+
+  // If length is not 11, or starts with '2', or starts with test error code '999'
+  if (cleaned.length !== 11 || cleaned.startsWith("2") || cleaned.startsWith("999")) {
+    throw new Error("No encontramos facturas asociadas a este dato. Revisá el dato ingresado. Si es correcto, es posible que la empresa aún no haya cargado tu factura.");
+  }
+
+  return {
+    valid: true,
+    service,
+    accountNumber: cleaned,
+    invoiceNumber: "FAC-" + cleaned.slice(-6),
+    amount: service.defaultAmount,
+    dueDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+  };
+}
+
+export function payService(
+  userId: string,
+  data: {
+    serviceId: string;
+    accountNumber: string;
+    amount: number;
+    paymentMethod: "account" | "card";
+    cardId?: string;
+    cardLastFour?: string;
+    cardBrand?: string;
+  }
+) {
+  const db = readDB();
+  const user = db.users.find((u) => u.id === userId);
+  if (!user) {
+    throw new Error("Usuario no encontrado");
+  }
+
+  const service = AVAILABLE_SERVICES.find((s) => s.id === data.serviceId);
+  const serviceName = service ? service.name : "Servicio";
+
+  // Validate available funds if paying with account money
+  if (data.paymentMethod === "account") {
+    if (user.balance < data.amount) {
+      const err: any = new Error("Puede deberse a fondos insuficientes. Comunicate con la entidad emisora de la tarjeta");
+      err.code = "INSUFFICIENT_FUNDS";
+      throw err;
+    }
+    user.balance -= data.amount;
+  }
+
+  const now = new Date();
+  const operationNumber = Math.floor(10000000000 + Math.random() * 90000000000).toString();
+  const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const dayName = dayNames[now.getDay()];
+
+  const origin =
+    data.paymentMethod === "account"
+      ? "Dinero en cuenta"
+      : `Tarjeta ${data.cardBrand || "Visa"} **********${data.cardLastFour || "0000"}`;
+
+  const newActivity: Activity = {
+    id: "act_" + Date.now().toString(),
+    userId,
+    type: "service_payment",
+    description: `Pago de servicios - ${serviceName}`,
+    amount: -data.amount,
+    date: now.toISOString(),
+    dayName,
+    operationNumber,
+    destination: serviceName,
+    destinationDetail: `Factura: ${data.accountNumber}`,
+    origin,
+    originDetail: origin,
+    status: "Aprobada",
+  };
+
+  db.activities.unshift(newActivity);
+  writeDB(db);
+
+  return {
+    success: true,
+    activity: newActivity,
+    newBalance: user.balance,
+    user: getSafeUser(user),
+  };
+}
